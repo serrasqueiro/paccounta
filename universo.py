@@ -12,6 +12,13 @@ def main():
     fname = "../../repo/universopt/_extractos/UNIVERSO_Movimentos_20230326_111102.xlsx"
     read_test(fname)
 
+def dump_line(line, idx=0):
+    assert idx >= 0
+    data, desc, cname, when, aval, desconto, what = line
+    slug = ",".join(better_date(data).split(" "))
+    astr = f"{slug},{cname},@{what},{desc},{when},{euro_value(aval)}"
+    print(astr)
+
 def read_test(in_xcel:str, verbose=0):
     filename = in_xcel
     data = openpyxl.open(filename, read_only=True)
@@ -23,8 +30,7 @@ def read_test(in_xcel:str, verbose=0):
         if verbose > 0:
             print(idx, line)
         else:
-            data, desc, cname, when, aval, desconto, what = line
-            print(better_date(data), desc, cname, when, aval, desconto, what)
+            dump_line(line, idx)
     return mov
 
 class Reader():
@@ -77,8 +83,25 @@ def row_string(row):
     for idx, aval in enumerate(row):
         col = chr(ord('A') + idx)
         new = Value(aval)
+        elem = new.string()
         if col == "A":
             item = dttm_from_date(new)
+        elif col == "B":
+            item = better_description(elem)
+        elif col == "C":
+            item = shorter_card_name(elem)
+        elif col == "D":
+            if elem.upper().startswith("FIM"):
+                item = "FDM"
+            else:
+                item = elem
+        elif col == "E":
+            if elem.lower() in ("-", "montante"):
+                item = ""
+            else:
+                item = float(elem)
+        elif col == "G" and elem.lower() != "categoria":
+            item = lettering_kind(elem)
         else:
             item = [new]
         res.append(item)
@@ -100,6 +123,54 @@ def better_date(dttm) -> str:
     out_fmt = "%Y-%d-%m %a"
     new = dttm.strftime(out_fmt)
     return new
+
+def lettering_kind(astr):
+    """ Returns one letter classifier from string. """
+    if not astr or astr == '-':
+        return 'z'
+    astr = astr.lower()
+    astr = astr.replace(chr(250), "u")
+    match = {
+        "alim": 'a',
+        "casa": 'b',
+        "entretenimento": 'c',
+        "outros": 'd',
+        "rest": 'e',
+        "saud": 'f',
+        "transportes": 'g',
+        "vest": 'h',
+        "viag": 'i',
+    }
+    what = match.get(astr[:4])
+    if what is not None:
+        return what
+    what = match.get(astr)
+    assert what is not None, astr
+    return what
+
+def shorter_card_name(astr):
+    spl = astr.split(" ")
+    astr = ""
+    for part in spl:
+        if astr:
+            astr += "_"
+        astr += part[:3]
+    if astr == "-":
+        res = "-" * 7
+    else:
+        res = f"{astr:.<7}"
+    return res
+
+def euro_value(aval):
+    assert isinstance(aval, float), f"Bogus money: {aval}"
+    return f"{aval:.2f}"
+
+def better_description(astr, achr=' '):
+    def slim_str(new):
+        return new.replace("*", "")
+    lin = achr.join([slim_str(aba) for aba in astr.split(" ") if aba])
+    lin = lin.replace(",", ";")
+    return lin
 
 if __name__ == '__main__':
     main()
