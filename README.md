@@ -1,3 +1,6 @@
-# paccounta - Python Accounting add-ons
+# [paccounta](https://github.com/serrasqueiro/paccounta) - Python Accounting add-ons
+Main github reference [here](https://github.com/serrasqueiro/paccounta)
+* see [LICENSE](https://github.com/serrasqueiro/paccounta/blob/master/LICENSE)
 
-[!https://github.com/serrasqueiro/paccounta/blob/master/categorias.png]
+## Other hints
+![Hints Excel](!https://github.com/serrasqueiro/paccounta/blob/master/categorias.png)
