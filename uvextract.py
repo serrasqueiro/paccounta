@@ -4,8 +4,6 @@
 (c)2023  Henrique Moreira
 """
 
-import datetime
-import openpyxl
 from paccounta.common import Ascii
 
 IN_ENCODING = "utf-8"
@@ -26,5 +24,17 @@ def reader_text_movements(fname:str) -> list:
     return lines
 
 def linear_line(astr:str, idx=0):
-    res = Ascii().simple(astr)
+    here = Ascii().simple(astr)
+    res = here.replace(" $", "$")
     return res
+
+def mov1_pattern():
+    """ Extracto, linha com movimento
+	14/03 15/03 Compra Pay Portugal 0,00$ -81,41$ 0,81$ 1,00%
+
+	Stored:	https://regex101.com/r/6kkUwx/1
+	Delete this regex: https://regex101.com/delete/1em6P5vJMNcshJjVWmSi6EURJRuv46Uz395y
+    """
+    pat = r"(\d*[\/]\d*) (\d*[\/]\d*)(.*) ([-]?\d\d*,\d*[$]) ([-]?\d\d*,\d*[$])[ ]+(\d,\d*[%]?)$"
+    pattern = re.compile(pat)
+    return pattern
